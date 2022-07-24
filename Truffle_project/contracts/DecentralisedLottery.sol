@@ -87,7 +87,18 @@ contract DecentralisedLottery is Ownable{
                 }
             }
         }
-
-        //TODO: restart lottery
+        restartLottery();
+    }
+        // Deletig data from the previous round
+        function restartLottery() private{
+        delete betsForNumbers;
+        jackpot = 0;
+        for(uint i = 0; i < 18; i++){
+            for(uint j = 0; j < playersArray[i].length; j++){
+                address addr = playersArray[i][j].playerAddress;
+                delete playersMap[addr];
+            }
+        }
+        delete playersArray;
     }
 }
