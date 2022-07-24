@@ -1,6 +1,5 @@
 const DecentralisedLottery = artifacts.require('DecentralisedLottery');
 const assert = require('assert');
-const toBN = web3.utils.toBN;
 
 
 contract("DecentralisedLottery", (accounts) => {
@@ -40,11 +39,14 @@ contract("DecentralisedLottery", (accounts) => {
         });
     });
 
-    describe.only("after finalization the winners should be paid proportionally to their bets", async () => {
+    describe("after finalization the winners should be paid proportionally to their bets", async () => {
+        let balance;
+        let finalizeResult;
         before("playing with players and then finalize with owner", async () => {
             await decentralisedLottery.play(8, {from: accounts[5], value: web3.utils.toWei('1', 'ether')});
             await decentralisedLottery.play(9, {from: accounts[6], value: web3.utils.toWei('1', 'ether')});
             await decentralisedLottery.play(9, {from: accounts[7], value: web3.utils.toWei('1', 'ether')});
+            balance = await web3.eth.getBalance(decentralisedLottery.address);
 
             finalizeResult = await decentralisedLottery.finalize({from: accounts[0]});
         });
@@ -52,11 +54,11 @@ contract("DecentralisedLottery", (accounts) => {
         it("should pay accounts 6 and 7 1.05 eth ((1+1+1)*70%/2)", async () => {
             assert.equal(finalizeResult.logs[0].args._from, decentralisedLottery.address, "The contract should pay the winners");
             assert.equal(finalizeResult.logs[0].args._to, accounts[6], "Account 6 should be paid")
-            assert.equal(finalizeResult.logs[0].args._value.toString(), web3.utils.toWei('1.05', 'ether'), "Account 6 should be paid 1.05 eth");
+            assert.equal(finalizeResult.logs[0].args._value.toString(), balance/2, "Account 6 should be paid 1.05 eth");
 
             assert.equal(finalizeResult.logs[1].args._from, decentralisedLottery.address, "The contract should pay the winners");
             assert.equal(finalizeResult.logs[1].args._to, accounts[7], "Account 7 should be paid")
-            assert.equal(finalizeResult.logs[1].args._value.toString(), web3.utils.toWei('1.05', 'ether'), "Account 7 should be paid 1.05 eth");
+            assert.equal(finalizeResult.logs[1].args._value.toString(), balance/2, "Account 7 should be paid 1.05 eth");
 
         })
     })
